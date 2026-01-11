@@ -1,5 +1,6 @@
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { betterAuth } from "better-auth/minimal"
+import { haveIBeenPwned } from "better-auth/plugins"
 import { tanstackStartCookies } from "better-auth/tanstack-start"
 import { prisma } from "./db"
 
@@ -25,5 +26,10 @@ export const auth = betterAuth({
 	advanced: {
 		cookiePrefix: "health-tracker",
 	},
-	plugins: [tanstackStartCookies()], // make sure this is the last plugin in the array
+	plugins: [
+		haveIBeenPwned({
+			customPasswordCompromisedMessage: "Please choose a more secure password.",
+		}),
+		tanstackStartCookies(), // make sure this is the last plugin in the array
+	],
 })

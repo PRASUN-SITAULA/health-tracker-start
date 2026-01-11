@@ -26,7 +26,7 @@
 		"rules": {
 			"recommended": true
 		},
-		"includes": ["!src/components/ui"]
+		"includes": ["!**/src/components/ui", "**/src/components/**/*"]
 	},
 	"javascript": {
 		"formatter": {
