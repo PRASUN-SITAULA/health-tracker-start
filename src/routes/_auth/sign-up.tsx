@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { Activity, Quote } from "lucide-react"
 import { SignUpForm } from "@/components/auth/SignUpForm"
 
-export const Route = createFileRoute("/auth/sign-up")({
+export const Route = createFileRoute("/_auth/sign-up")({
 	component: SignUpPage,
 })
 
@@ -29,7 +29,7 @@ function SignUpPage() {
 					<div className="text-center text-sm text-muted-foreground">
 						Already have an account?{" "}
 						<Link
-							to="/auth/login"
+							to="/login"
 							className="font-medium text-primary underline-offset-4 hover:underline"
 						>
 							Sign in

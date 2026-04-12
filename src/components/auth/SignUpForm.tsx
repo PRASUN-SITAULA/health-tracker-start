@@ -31,12 +31,13 @@ export const SignUpForm = () => {
 					email: value.email,
 					password: value.password,
 					name: value.name,
+					onboardingCompleted: false,
 				},
 				{
 					onSuccess: async () => {
 						toast.success("Account created successfully!")
 						await router.invalidate()
-						router.navigate({ to: "/" })
+						router.navigate({ to: "/onboarding" })
 					},
 					onError: (ctx) => {
 						toast.error(ctx.error.message || "Failed to create account")
