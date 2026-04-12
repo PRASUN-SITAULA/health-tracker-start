@@ -16,15 +16,18 @@ export const auth = betterAuth({
 			enabled: true,
 			maxAge: 7 * 24 * 60 * 60, // 7 days cache duration
 			strategy: "jwe",
-			refreshCache: true, // Enable stateless refresh
 		},
-	},
-	account: {
-		storeStateStrategy: "cookie",
-		storeAccountCookie: true, // Store account data after OAuth flow in a cookie (useful for database-less flows)
 	},
 	advanced: {
 		cookiePrefix: "health-tracker",
+	},
+	user: {
+		additionalFields: {
+			onboardingCompleted: {
+				type: "boolean",
+				// input: false,
+			},
+		},
 	},
 	plugins: [
 		haveIBeenPwned({
@@ -33,3 +36,5 @@ export const auth = betterAuth({
 		tanstackStartCookies(), // make sure this is the last plugin in the array
 	],
 })
+
+export type Session = typeof auth.$Infer.Session

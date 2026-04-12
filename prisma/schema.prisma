@@ -8,15 +8,17 @@ datasource db {
 }
 
 model User {
-  id            String    @id
+  id            String  @id
   name          String
   email         String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+
+  onboardingCompleted Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  sessions            Session[]
+  accounts            Account[]
 
   @@unique([email])
   @@map("user")
@@ -68,4 +70,18 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model UserProfile {
+  id     String @id @default(cuid(2))
+  userId String @unique
+
+  height Float?
+  weight Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("user_profile")
 }
