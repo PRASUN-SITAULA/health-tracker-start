@@ -19,6 +19,7 @@ model User {
   updatedAt           DateTime  @updatedAt
   sessions            Session[]
   accounts            Account[]
+  stepLogs            StepLog[]
 
   @@unique([email])
   @@map("user")
@@ -84,4 +85,19 @@ model UserProfile {
 
   @@index([userId])
   @@map("user_profile")
+}
+
+model StepLog {
+  id     String   @id @default(cuid(2))
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  count  Int
+  date   DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@map("step_log")
 }

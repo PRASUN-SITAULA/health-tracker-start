@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, redirect } from "@tanstack/react-router"
 import {
 	Activity,
 	ArrowRight,
@@ -7,6 +7,7 @@ import {
 	LineChart,
 	Trophy,
 } from "lucide-react"
+import { Header } from "@/components/Header"
 import { Button } from "@/components/ui/button"
 import {
 	Card,
@@ -15,8 +16,18 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card"
+import { getSession } from "@/lib/auth-functions"
 
 export const Route = createFileRoute("/")({
+	beforeLoad: async () => {
+		const session = await getSession()
+
+		if (!session) {
+			throw redirect({ to: "/login" })
+		}
+
+		return { user: session.user }
+	},
 	component: LandingPage,
 })
 
@@ -26,39 +37,7 @@ function LandingPage() {
 			{/* Navigation */}
 			<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 				<div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">
-					<div className="flex items-center gap-2">
-						<Activity className="h-6 w-6 text-primary" />
-						<span className="text-lg font-bold">HealthTracker</span>
-					</div>
-					<nav className="hidden gap-6 md:flex">
-						<Link
-							to="."
-							className="text-sm font-medium hover:text-primary transition-colors"
-						>
-							Features
-						</Link>
-						<Link
-							to="."
-							className="text-sm font-medium hover:text-primary transition-colors"
-						>
-							Testimonials
-						</Link>
-						<Link
-							to="."
-							className="text-sm font-medium hover:text-primary transition-colors"
-						>
-							Pricing
-						</Link>
-					</nav>
-					<div className="flex items-center gap-4">
-						<Link
-							to="."
-							className="text-sm font-medium hover:text-primary transition-colors hidden md:block"
-						>
-							Log in
-						</Link>
-						<Button size="sm">Get Started</Button>
-					</div>
+					<Header />
 				</div>
 			</header>
 

@@ -1,8 +1,5 @@
 import { useForm } from "@tanstack/react-form"
-import { createFileRoute, redirect, useRouter } from "@tanstack/react-router"
-import { createServerFn } from "@tanstack/react-start"
-import { getRequestHeaders } from "@tanstack/react-start/server"
-import { zodValidator } from "@tanstack/zod-adapter"
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { SubmitButton } from "@/components/SubmitButton"
 import {
@@ -19,47 +16,13 @@ import {
 	FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { auth } from "@/lib/auth"
 import { getSession } from "@/lib/auth-functions"
-import { prisma } from "@/lib/db"
 import { OnboardingSchema } from "@/lib/schema/onboarding"
-import { authMiddleware } from "@/middleware/auth"
-
-const updateProfile = createServerFn({ method: "POST" })
-	.inputValidator(zodValidator(OnboardingSchema))
-	.handler(async ({ data }) => {
-		const headers = getRequestHeaders()
-		const session = await auth.api.getSession({ headers })
-
-		if (!session) {
-			return { success: false }
-		}
-
-		await prisma.$transaction([
-			prisma.user.update({
-				where: { id: session.user.id },
-				data: { onboardingCompleted: true },
-			}),
-			prisma.userProfile.upsert({
-				where: { userId: session.user.id },
-				update: {
-					height: data.height,
-					weight: data.weight,
-				},
-				create: {
-					userId: session.user.id,
-					height: data.height,
-					weight: data.weight,
-				},
-			}),
-		])
-
-		return { success: true }
-	})
+import { updateProfile } from "@/server/onboarding"
+import { authClient } from "@/lib/auth-client"
 
 export const Route = createFileRoute("/onboarding")({
 	component: OnboardingPage,
-	server: { middleware: [authMiddleware] },
 	beforeLoad: async () => {
 		const session = await getSession()
 
@@ -74,7 +37,8 @@ export const Route = createFileRoute("/onboarding")({
 })
 
 function OnboardingPage() {
-	const router = useRouter()
+  const navigate = useNavigate()
+	const { refetch } = authClient.useSession()
 	const form = useForm({
 		defaultValues: {
 			height: 0,
@@ -85,10 +49,10 @@ function OnboardingPage() {
 		},
 		onSubmit: async ({ value }) => {
 			const data = await updateProfile({ data: value })
-			if (data.success) {
+      if (data.success) {
+        await refetch()
 				toast.success("Profile updated!")
-				await router.invalidate()
-				router.navigate({ to: "/dashboard" })
+				navigate({ to: "/dashboard", replace: true })
 			} else {
 				toast.error("Failed to update profile")
 			}
@@ -131,6 +95,7 @@ function OnboardingPage() {
 												onChange={(e) =>
 													field.handleChange(Number(e.target.value))
 												}
+												autoComplete="off"
 												aria-invalid={isInvalid}
 												placeholder="175"
 											/>
@@ -157,6 +122,7 @@ function OnboardingPage() {
 												onChange={(e) =>
 													field.handleChange(Number(e.target.value))
 												}
+												autoComplete="off"
 												aria-invalid={isInvalid}
 												placeholder="70"
 											/>
