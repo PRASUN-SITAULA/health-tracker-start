@@ -1,10 +1,5 @@
 import { useForm } from "@tanstack/react-form"
-import {
-	createFileRoute,
-	redirect,
-	useNavigate,
-	useRouter,
-} from "@tanstack/react-router"
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { SubmitButton } from "@/components/SubmitButton"
 import {
@@ -24,6 +19,7 @@ import { Input } from "@/components/ui/input"
 import { getSession } from "@/lib/auth-functions"
 import { OnboardingSchema } from "@/lib/schema/onboarding"
 import { updateProfile } from "@/server/onboarding"
+import { authClient } from "@/lib/auth-client"
 
 export const Route = createFileRoute("/onboarding")({
 	component: OnboardingPage,
@@ -41,7 +37,8 @@ export const Route = createFileRoute("/onboarding")({
 })
 
 function OnboardingPage() {
-	const navigate = useNavigate()
+  const navigate = useNavigate()
+	const { refetch } = authClient.useSession()
 	const form = useForm({
 		defaultValues: {
 			height: 0,
@@ -52,7 +49,8 @@ function OnboardingPage() {
 		},
 		onSubmit: async ({ value }) => {
 			const data = await updateProfile({ data: value })
-			if (data.success) {
+      if (data.success) {
+        await refetch()
 				toast.success("Profile updated!")
 				navigate({ to: "/dashboard", replace: true })
 			} else {

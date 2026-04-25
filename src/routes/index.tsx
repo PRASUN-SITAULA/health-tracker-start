@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, redirect } from "@tanstack/react-router"
 import {
 	Activity,
 	ArrowRight,
@@ -16,8 +16,18 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card"
+import { getSession } from "@/lib/auth-functions"
 
 export const Route = createFileRoute("/")({
+	beforeLoad: async () => {
+		const session = await getSession()
+
+		if (!session) {
+			throw redirect({ to: "/login" })
+		}
+
+		return { user: session.user }
+	},
 	component: LandingPage,
 })
 

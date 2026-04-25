@@ -1,8 +1,11 @@
 import { Link } from "@tanstack/react-router"
 import { Activity } from "lucide-react"
+import { authClient } from "@/lib/auth-client"
 import { Button } from "./ui/button"
 
 export const Header = () => {
+	const { data: session } = authClient.useSession()
+
 	return (
 		<>
 			<div className="flex items-center gap-2">
@@ -30,13 +33,21 @@ export const Header = () => {
 				</Link>
 			</nav>
 			<div className="flex items-center gap-4">
-				<Link
-					to="/login"
-					className="text-sm font-medium hover:text-primary transition-colors hidden md:block"
-				>
-					Log in
-				</Link>
-				<Button size="sm" render={<Link to="/sign-up">Get Started</Link>} />
+				{session ? (
+					<Button size="sm" onClick={() => authClient.signOut()}>
+						Logout
+					</Button>
+				) : (
+					<>
+						<Link
+							to="/login"
+							className="text-sm font-medium hover:text-primary transition-colors hidden md:block"
+						>
+							Log in
+						</Link>
+						<Button size="sm" render={<Link to="/sign-up">Get Started</Link>} />
+					</>
+				)}
 			</div>
 		</>
 	)

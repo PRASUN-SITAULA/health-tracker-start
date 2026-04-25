@@ -17,12 +17,15 @@ export const updateProfile = createServerFn({ method: "POST" })
 			return { success: false }
 		}
 
-		await prisma.$transaction([
-			prisma.user.update({
-				where: { id: session.user.id },
-				data: { onboardingCompleted: true },
-			}),
-			prisma.userProfile.upsert({
+		await prisma.$transaction(async (tx) => {
+      await auth.api.updateUser({
+        body: {
+          onboardingCompleted: true,
+        },
+        headers
+      })
+
+			await tx.userProfile.upsert({
 				where: { userId: session.user.id },
 				update: {
 					height: data.height,
@@ -33,8 +36,8 @@ export const updateProfile = createServerFn({ method: "POST" })
 					height: data.height,
 					weight: data.weight,
 				},
-			}),
-		])
+			})
+		})
 
 		return { success: true }
 	})
