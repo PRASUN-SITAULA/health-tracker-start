@@ -1,10 +1,10 @@
 import { redirect } from "@tanstack/react-router"
 import { createMiddleware } from "@tanstack/react-start"
-import { ensureSession } from "@/lib/auth-functions"
+import { getSession } from "@/lib/auth-functions"
 
 export const onboardedMiddleware = createMiddleware().server(
 	async ({ next }) => {
-		const session = await ensureSession()
+		const session = await getSession()
 
 		if (!session) {
 			throw redirect({ to: "/login" })

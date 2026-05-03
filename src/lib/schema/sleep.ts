@@ -1,14 +1,15 @@
 import { z } from "zod"
-export const LogStepsSchema = z.object({
-	count: z
+
+export const LogSleepSchema = z.object({
+	duration: z
 		.number()
-		.int()
-		.min(0, "Steps cannot be negative")
-		.max(100000, "That's a lot of steps!"),
+		.min(0, "Duration cannot be negative")
+		.max(24, "You can't sleep more than 24 hours in a day!"),
 	date: z.date("Please select a date").refine((date) => {
 		const today = new Date()
 		today.setHours(23, 59, 59, 999)
 		return date <= today
 	}, "Future dates are not allowed"),
 })
-export type LogStepsInput = z.infer<typeof LogStepsSchema>
+
+export type LogSleepInput = z.infer<typeof LogSleepSchema>
