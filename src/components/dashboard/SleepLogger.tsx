@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form"
 import { useRouter } from "@tanstack/react-router"
 import { format } from "date-fns"
-import { CalendarIcon, Footprints, Plus } from "lucide-react"
+import { CalendarIcon, Moon, Plus } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { SubmitButton } from "@/components/SubmitButton"
@@ -21,39 +21,40 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover"
-import { LogStepsSchema } from "@/lib/schema/steps"
+import { LogSleepSchema } from "@/lib/schema/sleep"
 import { cn } from "@/lib/utils"
-import { logSteps } from "@/server/dashboard"
+import { logSleep } from "@/server/dashboard"
 
-export function StepLogger() {
+export function SleepLogger() {
 	const router = useRouter()
 	const [open, setOpen] = useState(false)
 
 	const form = useForm({
 		defaultValues: {
-			count: 0,
+			duration: 0,
 			date: new Date(),
 		},
 		validators: {
-			onSubmit: LogStepsSchema,
+			onSubmit: LogSleepSchema,
 		},
 		onSubmit: async ({ value }) => {
-			const res = await logSteps({
-				data: { count: value.count, date: value.date },
+			const res = await logSleep({
+				data: { duration: value.duration, date: value.date },
 			})
 			if (res.success) {
-				toast.success("Steps logged successfully!")
+				toast.success("Sleep duration logged successfully!")
 				router.invalidate()
 				form.reset()
 			} else {
-				toast.error("Failed to log steps")
+				toast.error("Failed to log sleep duration")
 			}
 		},
 	})
 
 	const quickAdd = (amount: number) => {
-		const current = form.getFieldValue("count")
-		form.setFieldValue("count", current + amount)
+		const current = form.getFieldValue("duration")
+		const next = Math.min(24, current + amount)
+		form.setFieldValue("duration", next)
 	}
 
 	return (
@@ -61,15 +62,15 @@ export function StepLogger() {
 			<CardHeader className="flex flex-row items-center justify-between pb-6 bg-slate-50/50 border-b border-slate-100">
 				<div className="space-y-1.5">
 					<CardTitle className="text-xl font-bold tracking-tight">
-						Log Progress
+						Log Sleep
 					</CardTitle>
 					<CardDescription className="text-slate-500 font-medium">
-						Keep track of your daily movement.
+						Record your rest duration for better recovery.
 					</CardDescription>
 				</div>
 				<div className="hidden sm:block">
-					<div className="p-3 bg-indigo-50 rounded-2xl border border-indigo-100/50 shadow-sm">
-						<Footprints className="h-6 w-6 text-indigo-500" />
+					<div className="p-3 bg-purple-50 rounded-2xl border border-purple-100/50 shadow-sm">
+						<Moon className="h-6 w-6 text-purple-500" />
 					</div>
 				</div>
 			</CardHeader>
@@ -95,7 +96,7 @@ export function StepLogger() {
 												<Button
 													variant="outline"
 													className={cn(
-														"w-full h-12 justify-start text-left font-medium bg-white border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/10 focus:ring-2 focus:ring-indigo-500/20 transition-all text-base",
+														"w-full h-12 justify-start text-left font-medium bg-white border-slate-200 hover:border-purple-300 hover:bg-purple-50/10 focus:ring-2 focus:ring-purple-500/20 transition-all text-base",
 														!field.state.value && "text-muted-foreground",
 													)}
 												>
@@ -112,9 +113,12 @@ export function StepLogger() {
 											<Calendar
 												mode="single"
 												selected={field.state.value}
-												onSelect={(newDate) =>
-													newDate && field.handleChange(newDate)
-												}
+												onSelect={(newDate) => {
+													if (newDate) {
+														field.handleChange(newDate)
+														setOpen(false)
+													}
+												}}
 												disabled={(date) => {
 													const tomorrow = new Date()
 													tomorrow.setHours(0, 0, 0, 0)
@@ -132,18 +136,19 @@ export function StepLogger() {
 							)}
 						</form.Field>
 
-						<form.Field name="count">
+						<form.Field name="duration">
 							{(field) => (
 								<div className="flex flex-col gap-2">
 									<FieldLabel
 										htmlFor={field.name}
 										className="text-sm font-bold text-slate-700 uppercase tracking-wider"
 									>
-										Step Count
+										Sleep (Hours)
 									</FieldLabel>
 									<div className="relative">
 										<Input
 											type="number"
+											step="0.1"
 											id={field.name}
 											name={field.name}
 											value={field.state.value}
@@ -151,11 +156,11 @@ export function StepLogger() {
 											onChange={(e) =>
 												field.handleChange(Number(e.target.value))
 											}
-											placeholder="e.g. 10000"
-											className="h-12 w-full bg-white border-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition-all text-lg font-semibold pr-10"
+											placeholder="e.g. 7.5"
+											className="h-12 w-full bg-white border-slate-200 focus:ring-2 focus:ring-purple-500/20 transition-all text-lg font-semibold pr-10"
 										/>
 										<div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-											<Plus className="h-4 w-4 text-slate-300" />
+											<Moon className="h-4 w-4 text-slate-300" />
 										</div>
 									</div>
 									<FieldError errors={field.state.meta.errors} />
@@ -166,26 +171,26 @@ export function StepLogger() {
 
 					<div className="space-y-3">
 						<p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-							Quick Add
+							Quick Add Hours
 						</p>
 						<div className="flex flex-wrap gap-2">
-							{[1000, 2000, 5000, 10000].map((amount) => (
+							{[0.5, 1, 2, 8].map((amount) => (
 								<Button
 									key={amount}
 									type="button"
 									variant="outline"
 									size="sm"
 									onClick={() => quickAdd(amount)}
-									className="rounded-full border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 transition-colors font-semibold"
+									className="rounded-full border-slate-200 hover:border-purple-200 hover:bg-purple-50 hover:text-purple-600 transition-colors font-semibold"
 								>
-									+{amount.toLocaleString()}
+									+{amount}h
 								</Button>
 							))}
 							<Button
 								type="button"
 								variant="ghost"
 								size="sm"
-								onClick={() => form.setFieldValue("count", 0)}
+								onClick={() => form.setFieldValue("duration", 0)}
 								className="rounded-full text-slate-400 hover:text-destructive hover:bg-destructive/5 transition-colors font-medium ml-auto"
 							>
 								Reset
@@ -200,10 +205,10 @@ export function StepLogger() {
 							<SubmitButton
 								pending={isSubmitting}
 								disabled={!canSubmit}
-								className="h-14 w-full text-lg font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all active:scale-[0.99] bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl"
+								className="h-14 w-full text-lg font-bold shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-all active:scale-[0.99] bg-purple-600 hover:bg-purple-700 text-white rounded-2xl"
 							>
-								<Plus className="mr-2 h-6 w-6 stroke-[3]" />
-								Save Daily Steps
+								<Plus className="mr-2 h-6 w-6 stroke-3" />
+								Save Sleep Duration
 							</SubmitButton>
 						)}
 					</form.Subscribe>

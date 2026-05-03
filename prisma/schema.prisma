@@ -14,12 +14,13 @@ model User {
   emailVerified Boolean @default(false)
   image         String?
 
-  onboardingCompleted Boolean   @default(false)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  onboardingCompleted Boolean    @default(false)
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
   sessions            Session[]
   accounts            Account[]
   stepLogs            StepLog[]
+  sleepLogs           SleepLog[]
 
   @@unique([email])
   @@map("user")
@@ -100,4 +101,19 @@ model StepLog {
   @@unique([userId, date])
   @@index([userId])
   @@map("step_log")
+}
+
+model SleepLog {
+  id       String   @id @default(cuid(2))
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  duration Float // Duration in hours
+  date     DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@map("sleep_log")
 }
